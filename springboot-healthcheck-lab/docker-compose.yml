@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: healthlab_db
+    environment:
+      POSTGRES_DB: healthlab
+      POSTGRES_USER: ${POSTGRES_USER:-healthlab}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-healthlab}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-healthlab} -d healthlab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: healthlab_app
+    depends_on:
+      db:
+        condition: service_healthy   # wait until Postgres accepts connections
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/healthlab
+      DB_USER: ${POSTGRES_USER:-healthlab}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-healthlab}
+      FAULT_INJECTION_ENABLED: "true"   # lab only: enables /lab/fault endpoints
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - backend
+    restart: unless-stopped
+    # HEALTHCHECK is defined in the Dockerfile and shows up in `docker ps`
+
+volumes:
+  pgdata:
+
+networks:
+  backend:
+    driver: bridge

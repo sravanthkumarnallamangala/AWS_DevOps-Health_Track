@@ -1,0 +1,10 @@
+target
+.git
+.idea
+.vscode
+*.md
+scripts
+docker-compose.yml
+.env
+.env.*
+!.env.example

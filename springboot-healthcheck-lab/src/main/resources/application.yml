@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  application:
+    name: healthlab
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/healthlab}
+    username: ${DB_USER:healthlab}
+    password: ${DB_PASSWORD:healthlab}
+    hikari:
+      connection-timeout: 5000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
+
+lab:
+  fault-injection:
+    enabled: ${FAULT_INJECTION_ENABLED:false}
